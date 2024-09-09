@@ -12,7 +12,10 @@
 #define mapX 8
 #define mapY 8
 #define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.0))
-
+#define RAD_TO_DEG(deg) ((deg) / (M_PI / 180.0))
+#define P2 M_PI / 2
+#define P3 3 * M_PI / 2
+#define DIST(ax, ay, bx, by, ang) ( sqrt(((bx) - (ax)) + ((by) - (ay)) * ((by) - (ay))))
 
 typedef struct SDL_Instance
 {
@@ -26,6 +29,7 @@ int poll_events(float *, float *, float *, float *, float *);
 void draw_player(SDL_Instance, float *, float *,
 	float *, float *);
 void draw_map(SDL_Instance instance, int *);
-void draw_rays(SDL_Instance, float *, float *, float *, int (*)[64]);
+void draw_rays(SDL_Instance, float *, float *, float *, int [64]);
+void calculate_rx_ry(float *, float *, float *, float *, float , int [64]);
 
 #endif
