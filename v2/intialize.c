@@ -1,10 +1,30 @@
 #include "structure.h"
 
+/**
+ * xy2index - Converts (x, y) coordinates to a single index for a 2D map.
+ * @x: The x-coordinate in the map.
+ * @y: The y-coordinate in the map.
+ * @w: The width of the map.
+ * Return: The computed index for the given (x, y) coordinates.
+ * Description: This function calculates the index in a 1D array representation
+ * of a 2D map based on the provided (x, y) coordinates
+ * and the width of the map
+ */
 int xy2index(int x, int y, int w)
 {
 	return (y * w + x);
 }
 
+/**
+ * initialize_sdl - Initializes the SDL library
+ * and creates a window and renderer
+ * @state: A pointer to the State structure to be initialized.
+ * Description: This function initializes the SDL video subsystem, creates an
+ * SDL window with high DPI support, and sets up an SDL renderer with vertical
+ * synchronization enabled. It also sets the SDL relative mouse mode. If any
+ * of these operations fail, it prints an error message
+ * and terminates the program
+ */
 void initialize_sdl(State *state)
 {
 	ASSERT(!SDL_Init(SDL_INIT_VIDEO),
@@ -24,6 +44,27 @@ void initialize_sdl(State *state)
 	SDL_SetRelativeMouseMode(true);
 }
 
+/**
+ * initialize_raycasting - Initializes raycasting
+ * parameters based on the player's position and direction.
+ * @player: A pointer to the Player structure whose position is used.
+ * @rayDir: The direction of the ray being cast.
+ * @mapBox: A pointer to a Vec2I structure
+ * where the map box coordinates will be stored.
+ * @sideDist: A pointer to a Vec2F structure where
+ * the initial distances to the nearest grid lines will be stored.
+ * @deltaDist: A pointer to a Vec2F structure where
+ * the distances between grid lines will be stored.
+ * @stepDir: A pointer to a Vec2I structure where
+ * the step directions in the x and y axes will be stored.
+ * Description: This function calculates and
+ * initializes the raycasting parameters
+ * needed for performing raycasting.
+ * It determines the initial map box coordinates,
+ * the distance to the nearest grid lines
+ * in the x and y directions, and the step
+ * directions based on the ray direction and player's position.
+ */
 void initialize_raycasting(Player *player, Vec2F rayDir,
 	Vec2I *mapBox, Vec2F *sideDist, Vec2F *deltaDist, Vec2I *stepDir)
 {

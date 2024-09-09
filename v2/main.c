@@ -19,6 +19,11 @@ const uint8_t MAP[MAP_SIZE * MAP_SIZE] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
+/**
+ * initialize_player - Initializes and returns
+ * a Player structure with default values.
+ * Return: The initialized Player structure.
+ */
 Player initialize_player(void)
 {
 	Player player = {
@@ -29,6 +34,21 @@ Player initialize_player(void)
 	return (player);
 }
 
+/**
+ * handle_input - Handles user input and updates the Player and
+ * State based on keyboard and mouse events.
+ * @state: A pointer to the State structure to be updated.
+ * @player: A pointer to the Player structure to be updated.
+ * @rotateSpeed: The speed at which the player
+ * should rotate based on mouse movement.
+ * Description: This function processes events
+ * from the SDL event queue, including
+ * keyboard inputs for quitting the application
+ * and mouse movements for rotating the
+ * player's view. It updates the direction
+ * and plane vectors of the Player structure
+ * based on the mouse's relative movement.
+ */
 void handle_input(State *state, Player *player, float rotateSpeed)
 {
 	SDL_Event event;
@@ -64,6 +84,16 @@ void handle_input(State *state, Player *player, float rotateSpeed)
 	}
 }
 
+/**
+ * update_player - Updates the Player's position based on keyboard input.
+ * @player: A pointer to the Player structure to be updated.
+ * @keystate: A pointer to the current state of the keyboard.
+ * @moveSpeed: The speed at which the player should move.
+ * Description: This function updates the position of the Player based on the
+ * keyboard input for movement It calculates the new position
+ * based on the player's direction and movement speed, and checks if the new
+ * position is valid according to the MAP array.
+ */
 void update_player(Player *player, const uint8_t *keystate, float moveSpeed)
 {
 	Vec2F deltaPos = {.x = player->dir.x *
@@ -99,6 +129,14 @@ void update_player(Player *player, const uint8_t *keystate, float moveSpeed)
 	}
 }
 
+
+/**
+ * cleanup - Cleans up SDL resources and quits SDL.
+ * @state: A pointer to the State structure containing SDL resources.
+ * Description: This function destroys the SDL renderer and window, and then
+ * quits the SDL library. It should be called before the application exits to
+ * release resources properly.
+ */
 void cleanup(State *state)
 {
 	SDL_DestroyRenderer(state->renderer);
@@ -106,6 +144,15 @@ void cleanup(State *state)
 	SDL_Quit();
 }
 
+/**
+ * main - The entry point of the application.
+ * Return: 0 on successful completion.
+ * Description: This function initializes SDL library and creates the Player
+ * and State structures. It runs the main loop where it handles input, updates
+ * the player, clears and renders the screen, and presents the rendered image.
+ * The loop continues until the quit flag in the State structure is set to true
+ * After exiting the loop, it cleans up SDL resources and exits.
+ */
 int main(void)
 {
 	Player player = initialize_player();
