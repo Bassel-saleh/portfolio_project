@@ -1,24 +1,5 @@
 #include "structure.h"
 
-const uint8_t MAP[MAP_SIZE * MAP_SIZE] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 2, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-};
-
 /**
  * initialize_player - Initializes and returns
  * a Player structure with default values.
@@ -53,34 +34,37 @@ void handle_input(State *state, Player *player, float rotateSpeed)
 {
 	SDL_Event event;
 	Vec2F oldPlane, oldDir;
-	float rotSpeed;
-	int mouse_xrel = 0;
+	float rotSpeed = 0.0f;
+	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
 	while (SDL_PollEvent(&event))
 	{
 		if (event.type == SDL_QUIT)
 			state->quit = true;
-		else if (event.type == SDL_MOUSEMOTION)
-			mouse_xrel = event.motion.xrel;
 	}
-
-	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
 	if (keystate[SDL_SCANCODE_ESCAPE])
 		state->quit = true;
-	if (mouse_xrel != 0)
+
+	if (keystate[SDL_SCANCODE_LEFT])
+		rotSpeed = rotateSpeed;
+	else if (keystate[SDL_SCANCODE_RIGHT])
+		rotSpeed = -rotateSpeed;
+
+	if (rotSpeed != 0.0f)
 	{
-		rotSpeed = rotateSpeed * (mouse_xrel * -0.1);
 		oldDir = player->dir;
-		player->dir.x = player->dir.x *
-			cosf(rotSpeed) - player->dir.y * sinf(rotSpeed);
+		player->dir.x = player->dir.x * cosf(rotSpeed) - player->dir.y * sinf(rotSpeed);
 		player->dir.y = oldDir.x * sinf(rotSpeed) + player->dir.y * cosf(rotSpeed);
 
 		oldPlane = player->plane;
-		player->plane.x = player->plane.x *
-			cosf(rotSpeed) - player->plane.y * sinf(rotSpeed);
-		player->plane.y = oldPlane.x *
-			sinf(rotSpeed) + player->plane.y * cosf(rotSpeed);
+		player->plane.x = player->plane.x * cosf(rotSpeed) - player->plane.y * sinf(rotSpeed);
+		player->plane.y = oldPlane.x * sinf(rotSpeed) + player->plane.y * cosf(rotSpeed);
+	}
+	if (keystate[SDL_SCANCODE_M])
+	{
+		state->mapViewEnabled = !state->mapViewEnabled;
+		/* Add a small delay to prevent rapid toggling */
+		SDL_Delay(200);
 	}
 }
 
@@ -94,7 +78,7 @@ void handle_input(State *state, Player *player, float rotateSpeed)
  * based on the player's direction and movement speed, and checks if the new
  * position is valid according to the MAP array.
  */
-void update_player(Player *player, const uint8_t *keystate, float moveSpeed)
+void update_player(Player *player, const uint8_t *keystate, float moveSpeed, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 {
 	Vec2F deltaPos = {.x = player->dir.x *
 		moveSpeed, .y = player->dir.y * moveSpeed};
@@ -139,6 +123,15 @@ void update_player(Player *player, const uint8_t *keystate, float moveSpeed)
  */
 void cleanup(State *state)
 {
+	for (int i = 0; i < 4; ++i)
+	{
+		if (state->wallTextures[i])
+			SDL_DestroyTexture(state->wallTextures[i]);
+		if (state->floorTextures[i])
+			SDL_DestroyTexture(state->wallTextures[i]);
+		if (state->weaponTexture[i])
+			SDL_DestroyTexture(state->wallTextures[i]);
+	}
 	SDL_DestroyRenderer(state->renderer);
 	SDL_DestroyWindow(state->window);
 	SDL_Quit();
@@ -155,28 +148,35 @@ void cleanup(State *state)
  */
 int main(void)
 {
+	uint8_t MAP[MAP_SIZE * MAP_SIZE];
+	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+	int y = 0;
+
+	if (!load_map("map_1", &MAP))
+		return (1);  /* Exit if map loading fails */
+	for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++)
+	{
+		printf("%i, ", MAP[i]);
+		y++;
+		if (y % 16 == 0)
+			printf("\n");
+	}
 	Player player = initialize_player();
 	const float rotateSpeed = 0.025, moveSpeed = 0.05;
-	State state = {.quit = false};
+	State state = {.quit = false, .mapViewEnabled = false, .numEnemies = 0, .enemySpawnTimer = SDL_GetTicks()};
 
 	initialize_sdl(&state);
-
 	while (!state.quit)
 	{
 		handle_input(&state, &player, rotateSpeed);
-
-		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
-		update_player(&player, keystate, moveSpeed);
-
+		update_player(&player, keystate, moveSpeed, MAP);
+		handle_enemies(&state);
 		SDL_SetRenderDrawColor(state.renderer, 0x18, 0x18, 0x18, 0xFF);
 		SDL_RenderClear(state.renderer);
-
-		render(&state, &player);
-
+		render(&state, &player, MAP);
+		render_weapon(&state);
 		SDL_RenderPresent(state.renderer);
 	}
-
 	cleanup(&state);
 	return (0);
 }
