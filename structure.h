@@ -105,10 +105,17 @@ typedef struct Enemy
 } Enemy;
 
 /**
- * struct State - Holds the window, renderer, and state of the game loop
- * @window: Pointer to the SDL_Window structure
- * @renderer: Pointer to the SDL_Renderer structure for rendering
- * @quit: Boolean indicating if the game loop should quit
+ * struct State - Holds the window, renderer, and state of the game loop.
+ * @window: Pointer to the SDL_Window structure.
+ * @renderer: Pointer to the SDL_Renderer structure for rendering.
+ * @quit: Boolean indicating if the game loop should quit.
+ * @mapViewEnabled: Boolean for enabling/disabling map view.
+ * @wallTextures: Array of textures for the walls.
+ * @floorTextures: Array of textures for the floor.
+ * @weaponTexture: Array of textures for weapons.
+ * @enemies: Array of enemies in the game.
+ * @numEnemies: Current number of enemies.
+ * @enemySpawnTimer: Timer for controlling the enemy spawn rate.
  */
 typedef struct State
 {
@@ -116,12 +123,12 @@ typedef struct State
 	SDL_Renderer *renderer;
 	bool quit;
 	bool mapViewEnabled;
-	SDL_Texture* wallTextures[4];
-	SDL_Texture* floorTextures[4];
-	SDL_Texture* weaponTexture[4];
-	Enemy enemies[10];  // Array of enemies
+	SDL_Texture *wallTextures[4];
+	SDL_Texture *floorTextures[4];
+	SDL_Texture *weaponTexture[4];
+	Enemy enemies[10];  /* Array of enemies */
 	int numEnemies;
-	Uint32 enemySpawnTimer;  // Timer for spawning enemies
+	Uint32 enemySpawnTimer;  /* Timer for spawning enemies */
 } State;
 
 #define RGBA_Red ((ColorRGBA) {.r = 0xFF, .g = 0x00, .b = 0x00, .a = 0xFF})
@@ -135,7 +142,9 @@ int main(void);
 bool load_map(const char *filename, uint8_t (*MAP)[MAP_SIZE * MAP_SIZE]);
 void render(State *state, Player *player, uint8_t MAP[MAP_SIZE * MAP_SIZE]);
 float calculate_wall_distance(Side side, Vec2F *sideDist, Vec2F *deltaDist);
-void render_column(State *state, int x, int lineHeight, Side side, Vec2I mapBox, uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist, Vec2F rayDir, Player *player);
+void render_column(State *state, int x, int lineHeight, Side side,
+	Vec2I mapBox, uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist,
+		Vec2F rayDir, Player *player);
 bool perform_dda(Vec2I *mapBox, Vec2F *sideDist,
 	Vec2F *deltaDist, Vec2I *stepDir, Side *side, uint8_t [MAP_SIZE * MAP_SIZE]);
 Vec2F calculate_ray_direction(Player *player, int x);
@@ -143,14 +152,16 @@ void initialize_raycasting(Player *player, Vec2F rayDir,
 	Vec2I *mapBox, Vec2F *sideDist, Vec2F *deltaDist, Vec2I *stepDir);
 int xy2index(int x, int y, int w);
 void cleanup(State *state);
-void update_player(Player *player, const uint8_t *keystate, float moveSpeed, uint8_t [MAP_SIZE * MAP_SIZE]);
+void update_player(Player *player, const uint8_t *keystate, float moveSpeed,
+	uint8_t [MAP_SIZE * MAP_SIZE]);
 void handle_input(State *state, Player *player, float rotateSpeed);
 void initialize_sdl(State *state);
 Player initialize_player(void);
 void draw_map(State *state, uint8_t MAP[MAP_SIZE * MAP_SIZE]);
 void draw_player(State *state, Player *player);
-SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path);
-void render_ground(State *state, int x, int lineHeight, Vec2I mapBox, uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist, Player *player);
+SDL_Texture *load_texture(SDL_Renderer *renderer, const char *path);
+void render_ground(State *state, int x, int lineHeight, Vec2I mapBox,
+	uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist, Player *player);
 void render_weapon(State *state);
 Enemy initialize_enemy(SDL_Renderer *renderer);
 void handle_enemies(State *state);

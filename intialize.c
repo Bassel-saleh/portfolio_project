@@ -42,11 +42,16 @@ void initialize_sdl(State *state)
 		SDL_GetError());
 	SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
 	SDL_SetRelativeMouseMode(true);
-	state->floorTextures[1]	= load_texture(state->renderer, "./texture/wild_grass.jpg");
-	state->wallTextures[1] = load_texture(state->renderer, "./texture/stone_wall_texture.jpg");
-	state->wallTextures[2] = load_texture(state->renderer, "./texture/stone_wall_texture.jpg");
-	state->wallTextures[3] = load_texture(state->renderer, "./texture/stone_wall_texture.jpg");
-	state->weaponTexture[1] = load_texture(state->renderer, "./texture/weapon_1.png");
+	state->floorTextures[1]	= load_texture(state->renderer,
+		"./texture/wild_grass.jpg");
+	state->wallTextures[1] = load_texture(state->renderer,
+		"./texture/stone_wall_texture.jpg");
+	state->wallTextures[2] = load_texture(state->renderer,
+		"./texture/stone_wall_texture.jpg");
+	state->wallTextures[3] = load_texture(state->renderer,
+		"./texture/stone_wall_texture.jpg");
+	state->weaponTexture[1] = load_texture(state->renderer,
+		"./texture/weapon_1.png");
 }
 
 /**
@@ -100,7 +105,7 @@ void initialize_raycasting(Player *player, Vec2F rayDir,
 }
 
 /**
- * draw_player_and_sight - Draws the player and their line of sight on the 2D map.
+ * draw_player - Draws the player & their line of sight on a 2D map.
  * @state: A pointer to the State structure containing the renderer.
  * @player: A pointer to the Player structure with player details.
  * Description: This function draws the player as a small rectangle and
@@ -118,17 +123,20 @@ void draw_player(State *state, Player *player)
 		.w = playerSize,
 		.h = playerSize
 	};
-	
-	SDL_SetRenderDrawColor(state->renderer, RGBA_Red.r, RGBA_Red.g, RGBA_Red.b, RGBA_Red.a);
+
+	SDL_SetRenderDrawColor(state->renderer, RGBA_Red.r,
+		RGBA_Red.g, RGBA_Red.b, RGBA_Red.a);
 	SDL_RenderFillRect(state->renderer, &playerRect);
 
 	/* Draw line of sight*/
 	Vec2F sightEnd = {
-		.x = player->pos.x + player->dir.x * 5.0f, /* Adjust length of line of sight if needed */
+		.x = player->pos.x + player->dir.x * 5.0f,
+		/* Adjust length of line of sight if needed */
 		.y = player->pos.y + player->dir.y * 5.0f
 	};
-	
-	SDL_SetRenderDrawColor(state->renderer, RGBA_Blue.r, RGBA_Blue.g, RGBA_Blue.b, RGBA_Blue.a);
+
+	SDL_SetRenderDrawColor(state->renderer, RGBA_Blue.r,
+		RGBA_Blue.g, RGBA_Blue.b, RGBA_Blue.a);
 	SDL_RenderDrawLine(state->renderer,
 		(int)(player->pos.x * tileSize),
 		(int)(player->pos.y * tileSize),
@@ -146,8 +154,9 @@ void draw_player(State *state, Player *player)
  */
 void draw_map(State *state, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 {
-	int tileSize = 10; /* Size of each tile in pixels */
-	for (int y = 0; y < MAP_SIZE; y++)
+	int tileSize = 10, y; /* Size of each tile in pixels */
+
+	for (y = 0; y < MAP_SIZE; y++)
 	{
 		for (int x = 0; x < MAP_SIZE; x++)
 		{
@@ -158,16 +167,17 @@ void draw_map(State *state, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 				.h = tileSize
 			};
 			int map = xy2index(x, y, MAP_SIZE);
-			
+
 			if (MAP[map] == 1 || MAP[map] == 2 || MAP[map] == 3) /* Wall */
 			{
-				SDL_SetRenderDrawColor(state->renderer, RGBA_wall.r, RGBA_wall.g, RGBA_wall.b, RGBA_wall.a);
+				SDL_SetRenderDrawColor(state->renderer,
+					RGBA_wall.r, RGBA_wall.g, RGBA_wall.b, RGBA_wall.a);
 			}
 			else /* Ground */
 			{
-				SDL_SetRenderDrawColor(state->renderer, RGBA_Ground.r, RGBA_Ground.g, RGBA_Ground.b, RGBA_Ground.a);
+				SDL_SetRenderDrawColor(state->renderer, RGBA_Ground.r,
+					RGBA_Ground.g, RGBA_Ground.b, RGBA_Ground.a);
 			}
-			
 			SDL_RenderFillRect(state->renderer, &tile);
 		}
 	}

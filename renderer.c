@@ -29,9 +29,10 @@ Vec2F calculate_ray_direction(Player *player, int x)
  * @deltaDist: Pointer to distances between grid lines.
  * @stepDir: Pointer to step directions in x and y axes.
  * @side: Pointer to store which side of the wall was hit.
+ * @MAP: the map which is used during the game.
  * Return: True if a wall is hit, false otherwise.
  */
-bool perform_dda(Vec2I *mapBox, Vec2F *sideDist,Vec2F *deltaDist,
+bool perform_dda(Vec2I *mapBox, Vec2F *sideDist, Vec2F *deltaDist,
 	Vec2I *stepDir, Side *side, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 {
 	bool hit = false;
@@ -77,14 +78,23 @@ float calculate_wall_distance(Side side, Vec2F *sideDist, Vec2F *deltaDist)
 
 /**
  * render_column - Renders a vertical column of the screen.
- * @state: Pointer to the State structure containing the SDL renderer.
- * @x: The x-coordinate of the column to render.
- * @lineHeight: The height of the column to render.
- * @side: The side of the wall hit by the ray.
- * @mapBox: The map coordinates of the wall hit.
+ * @state: Pointer to the State structure containing the SDL
+ * renderer and textures.
+ * @x: The x-coordinate of the column to render on the screen.
+ * @lineHeight: The height of the column, calculated based on the
+ * distance to the wall.
+ * @side: The side of the wall hit by the ray (North/South or East/West).
+ * @mapBox: The map coordinates (grid position) of the wall hit by the ray.
+ * @MAP: The 2D map array used during the game, which stores wall positions.
+ * @perpWallDist: The perpendicular distance
+ * from the player to the wall hit by the ray.
+ * @rayDir: The direction of the ray used to calculate the wall hit.
+ * @player: Pointer to the Player structure containing the player's position.
  * Return: None
  */
-void render_column(State *state, int x, int lineHeight, Side side, Vec2I mapBox, uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist, Vec2F rayDir, Player *player)
+void render_column(State *state, int x, int lineHeight, Side side,
+	Vec2I mapBox, uint8_t MAP[MAP_SIZE * MAP_SIZE], float perpWallDist,
+	Vec2F rayDir, Player *player)
 {
 	int drawStart, drawEnd;
 	SDL_Rect srcRect, dstRect;
@@ -97,23 +107,24 @@ void render_column(State *state, int x, int lineHeight, Side side, Vec2I mapBox,
 	if (drawEnd >= SCREEN_H)
 		drawEnd = SCREEN_H;
 
-	// Select the texture based on the map value
+	/* Select the texture based on the map value */
 	texture = state->wallTextures[MAP[xy2index(mapBox.x, mapBox.y, MAP_SIZE)]];
 
-	// Calculate texture coordinates
-	float wallX = (side == EastWest) ? player->pos.y + perpWallDist * rayDir.y : player->pos.x + perpWallDist * rayDir.x;
+	/* Calculate texture coordinates */
+	float wallX = (side == EastWest) ? player->pos.y +
+		perpWallDist * rayDir.y : player->pos.x + perpWallDist * rayDir.x;
 	wallX -= floor(wallX);
-	srcRect.x = (int)(wallX * 512); // Width of your texture
+	srcRect.x = (int)(wallX * 512); /* Width of your texture */
 	srcRect.y = 0;
 	srcRect.w = 1;
-	srcRect.h = 512; /* Height of your texture*/
+	srcRect.h = 512; /* Height of your texture */
 
 	dstRect.x = x;
 	dstRect.y = drawStart;
 	dstRect.w = 1;
 	dstRect.h = drawEnd - drawStart;
 
-	// Set the texture color based on the side
+	/* Set the texture color based on the side */
 	if (side == NorthSouth)
 		SDL_SetTextureColorMod(texture, 128, 128, 128);
 	else
@@ -126,6 +137,7 @@ void render_column(State *state, int x, int lineHeight, Side side, Vec2I mapBox,
  * render - Renders the entire scene.
  * @state: Pointer to the State structure containing the SDL renderer.
  * @player: Pointer to the Player structure containing player information.
+ * @MAP: the map which is used during the game.
  * Return: None
  */
 void render(State *state, Player *player, uint8_t MAP[MAP_SIZE * MAP_SIZE])
@@ -134,11 +146,13 @@ void render(State *state, Player *player, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 	SDL_Rect groundRect = {0, SCREEN_H / 2, SCREEN_W, SCREEN_H / 2};
 
 	/* Set color for the ceiling and fill the ceiling area */
-	SDL_SetRenderDrawColor(state->renderer, RGBA_Ceiling.r, RGBA_Ceiling.g, RGBA_Ceiling.b, RGBA_Ceiling.a);
+	SDL_SetRenderDrawColor(state->renderer, RGBA_Ceiling.r,
+		RGBA_Ceiling.g, RGBA_Ceiling.b, RGBA_Ceiling.a);
 	SDL_RenderFillRect(state->renderer, &ceilingRect);
 
-	// Set color for the ground and fill the ground area
-	SDL_SetRenderDrawColor(state->renderer, RGBA_Ground.r, RGBA_Ground.g, RGBA_Ground.b, RGBA_Ground.a);
+	/* Set color for the ground and fill the ground area */
+	SDL_SetRenderDrawColor(state->renderer, RGBA_Ground.r,
+		RGBA_Ground.g, RGBA_Ground.b, RGBA_Ground.a);
 	SDL_RenderFillRect(state->renderer, &groundRect);
 	for (int x = 0; x < SCREEN_W; ++x)
 	{
@@ -149,13 +163,15 @@ void render(State *state, Player *player, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 		Vec2I stepDir;
 		Side side;
 
-		initialize_raycasting(player, rayDir, &mapBox, &sideDist, &deltaDist, &stepDir);
+		initialize_raycasting(player, rayDir,
+			&mapBox, &sideDist, &deltaDist, &stepDir);
 		perform_dda(&mapBox, &sideDist, &deltaDist, &stepDir, &side, MAP);
 
 		float perpWallDist = calculate_wall_distance(side, &sideDist, &deltaDist);
 		int lineHeight = (int)(SCREEN_H / perpWallDist);
 
-		render_column(state, x, lineHeight, side, mapBox, MAP, perpWallDist, rayDir, player);
+		render_column(state, x, lineHeight, side,
+			mapBox, MAP, perpWallDist, rayDir, player);
 		/*render_ground(state, x, lineHeight, mapBox, MAP, perpWallDist, player);*/
 	}
 	/*render_enemies(state, player);*/

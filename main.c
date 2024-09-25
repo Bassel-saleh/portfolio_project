@@ -53,12 +53,15 @@ void handle_input(State *state, Player *player, float rotateSpeed)
 	if (rotSpeed != 0.0f)
 	{
 		oldDir = player->dir;
-		player->dir.x = player->dir.x * cosf(rotSpeed) - player->dir.y * sinf(rotSpeed);
+		player->dir.x = player->dir.x *
+			cosf(rotSpeed) - player->dir.y * sinf(rotSpeed);
 		player->dir.y = oldDir.x * sinf(rotSpeed) + player->dir.y * cosf(rotSpeed);
 
 		oldPlane = player->plane;
-		player->plane.x = player->plane.x * cosf(rotSpeed) - player->plane.y * sinf(rotSpeed);
-		player->plane.y = oldPlane.x * sinf(rotSpeed) + player->plane.y * cosf(rotSpeed);
+		player->plane.x = player->plane.x * cosf(rotSpeed) -
+			player->plane.y * sinf(rotSpeed);
+		player->plane.y = oldPlane.x *
+			sinf(rotSpeed) + player->plane.y * cosf(rotSpeed);
 	}
 	if (keystate[SDL_SCANCODE_M])
 	{
@@ -73,12 +76,10 @@ void handle_input(State *state, Player *player, float rotateSpeed)
  * @player: A pointer to the Player structure to be updated.
  * @keystate: A pointer to the current state of the keyboard.
  * @moveSpeed: The speed at which the player should move.
- * Description: This function updates the position of the Player based on the
- * keyboard input for movement It calculates the new position
- * based on the player's direction and movement speed, and checks if the new
- * position is valid according to the MAP array.
+ * @MAP: the map which is used during the game.
  */
-void update_player(Player *player, const uint8_t *keystate, float moveSpeed, uint8_t MAP[MAP_SIZE * MAP_SIZE])
+void update_player(Player *player, const uint8_t *keystate,
+	float moveSpeed, uint8_t MAP[MAP_SIZE * MAP_SIZE])
 {
 	Vec2F deltaPos = {.x = player->dir.x *
 		moveSpeed, .y = player->dir.y * moveSpeed};
@@ -150,20 +151,13 @@ int main(void)
 {
 	uint8_t MAP[MAP_SIZE * MAP_SIZE];
 	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-	int y = 0;
 
 	if (!load_map("map_1", &MAP))
 		return (1);  /* Exit if map loading fails */
-	for (int i = 0; i < MAP_SIZE * MAP_SIZE; i++)
-	{
-		printf("%i, ", MAP[i]);
-		y++;
-		if (y % 16 == 0)
-			printf("\n");
-	}
 	Player player = initialize_player();
 	const float rotateSpeed = 0.025, moveSpeed = 0.05;
-	State state = {.quit = false, .mapViewEnabled = false, .numEnemies = 0, .enemySpawnTimer = SDL_GetTicks()};
+	State state = {.quit = false, .mapViewEnabled = false,
+		.numEnemies = 0, .enemySpawnTimer = SDL_GetTicks()};
 
 	initialize_sdl(&state);
 	while (!state.quit)
